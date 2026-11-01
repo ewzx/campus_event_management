@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'features/participant/pages/event_list_page.dart';
+import 'features/organizer/pages/organizer_home_page.dart';
 
 void main() {
   runApp(const CampusEventApp());
@@ -143,10 +144,14 @@ class HomePage extends StatelessWidget {
                                 'Create events, manage registrations, '
                                 'and monitor attendance.',
                             buttonText: 'Manage Events',
-                            onTap: () => showComingSoon(
-                              context,
-                              'Organizer',
-                            ),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const OrganizerHomePage(),
+                                ),
+                              );
+                            },
                           ),
                         ),
 
