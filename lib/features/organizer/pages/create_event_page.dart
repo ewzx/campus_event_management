@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../core/formatters.dart';
 import '../../../models/event.dart';
@@ -22,6 +24,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
   DateTime? _date;
   TimeOfDay? _time;
   bool _registrationOpen = true;
+  String _imagePath = '';
   bool _showDateTimeError = false;
 
   @override
@@ -29,6 +32,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
     super.initState();
     final e = widget.eventToEdit;
     if (e != null) {
+      _imagePath = e.imageUrl;
       _titleController.text = e.title;
       _descriptionController.text = e.description;
       _venueController.text = e.venue;
@@ -71,6 +75,13 @@ class _CreateEventPageState extends State<CreateEventPage> {
     }
   }
 
+  Future<void> _pickImage() async {
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() => _imagePath = picked.path);
+    }
+  }
+
   void _submit() {
     final formValid = _formKey.currentState!.validate();
     final dateTimeChosen = _date != null && _time != null;
@@ -96,7 +107,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
       description: _descriptionController.text.trim(),
       venue: _venueController.text.trim(),
       dateTime: dateTime,
-      imageUrl: old?.imageUrl ?? '',
+      imageUrl: _imagePath,
       capacity: int.parse(_capacityController.text.trim()),
       registeredCount: old?.registeredCount ?? 0,
       registrationOpen: _registrationOpen,
@@ -147,7 +158,36 @@ class _CreateEventPageState extends State<CreateEventPage> {
                           color: scheme.primary,
                         ),
                         const SizedBox(height: 8),
-                        const Text('Event poster (upload coming soon)'),
+                        InkWell(
+                          onTap: _pickImage,
+                          child: Container(
+                            height: 150,
+                            width: double.infinity,
+                            clipBehavior: Clip.antiAlias,
+                            decoration: BoxDecoration(
+                              color: scheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: _imagePath.isEmpty
+                                ? Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.add_photo_alternate_outlined,
+                                  size: 40,
+                                  color: scheme.primary,
+                                ),
+                                const SizedBox(height: 8),
+                                const Text('Tap to add an event poster'),
+                              ],
+                            )
+                                : Image.file(
+                              File(_imagePath),
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),

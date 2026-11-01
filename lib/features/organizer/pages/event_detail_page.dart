@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'create_event_page.dart';
+import 'announcements_page.dart';
+import 'dart:io';
 import '../../../core/formatters.dart';
 import '../../../models/event.dart';
 
@@ -84,6 +86,18 @@ class _EventDetailPageState extends State<EventDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (event.imageUrl.isNotEmpty) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.file(
+                      File(event.imageUrl),
+                      height: 200,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 Text(
                   event.title,
                   style: const TextStyle(
@@ -133,6 +147,23 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 ),
                 SizedBox(
                   width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              AnnouncementsPage(event: widget.event),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.campaign),
+                    label: const Text('Announcements'),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
                   child: FilledButton.icon(
                     onPressed: _editEvent,
                     icon: const Icon(Icons.edit),
@@ -140,7 +171,6 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   ),
                 ),
                 const SizedBox(height: 12),
-
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(

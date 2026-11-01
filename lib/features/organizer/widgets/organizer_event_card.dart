@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'dart:io';
 import '../../../core/formatters.dart';
 import '../../../models/event.dart';
 
@@ -30,7 +30,26 @@ class OrganizerEventCard extends StatelessWidget {
                   color: scheme.primaryContainer,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(Icons.event, size: 36, color: scheme.primary),
+                child:               ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: event.imageUrl.isEmpty
+                      ? Container(
+                    width: 72,
+                    height: 72,
+                    color: scheme.primaryContainer,
+                    child: Icon(
+                      Icons.event,
+                      size: 36,
+                      color: scheme.primary,
+                    ),
+                  )
+                      : Image.file(
+                    File(event.imageUrl),
+                    width: 72,
+                    height: 72,
+                    fit: BoxFit.cover,
+                  ),
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
