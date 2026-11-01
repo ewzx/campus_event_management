@@ -12,7 +12,7 @@ import 'package:campus_event_management/main.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+    // Build the app and trigger a frame.
     await tester.pumpWidget(const CampusEventApp());
 
     // Verify that our counter starts at 0.
