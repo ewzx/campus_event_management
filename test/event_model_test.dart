@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:campus_event_management/models/event.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() {
   test('new event has the correct default values', () {
@@ -30,7 +31,10 @@ void main() {
       organizerId: 'o1',
     );
 
-    final copy = Event.fromMap(event.toMap());
+    final map = event.toMap();
+    // Firestore gives back a Timestamp
+    map['dateTime'] = Timestamp.fromDate(event.dateTime);
+    final copy = Event.fromMap(map);
 
     expect(copy.eventId, 'e1');
     expect(copy.title, 'Tech Talk');
