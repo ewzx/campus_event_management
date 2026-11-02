@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
+import 'dart:convert';
 import '../../../core/formatters.dart';
 import '../../../models/event.dart';
 
@@ -43,8 +43,8 @@ class OrganizerEventCard extends StatelessWidget {
                       color: scheme.primary,
                     ),
                   )
-                      : Image.file(
-                    File(event.imageUrl),
+                      : Image.memory(
+                    base64Decode(event.imageUrl),
                     width: 72,
                     height: 72,
                     fit: BoxFit.cover,

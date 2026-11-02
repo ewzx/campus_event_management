@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
+import '../services/event_service.dart';
 import '../../../models/event.dart';
 import '../widgets/organizer_event_card.dart';
 import 'create_event_page.dart';
@@ -13,8 +14,7 @@ class OrganizerHomePage extends StatefulWidget {
 }
 
 class _OrganizerHomePageState extends State<OrganizerHomePage> {
-  // Temporary in-memory list. Firestore will replace this later.
-  final List<Event> _events = [];
+  final EventService _service = EventService();
 
   Future<void> _openCreateEvent() async {
     final created = await Navigator.push<Event>(
@@ -22,8 +22,9 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
       MaterialPageRoute(builder: (context) => const CreateEventPage()),
     );
 
-    if (created != null && mounted) {
-      setState(() => _events.insert(0, created));
+    if (created != null) {
+      await _service.addEvent(created);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('"${created.title}" created')),
       );
@@ -36,16 +37,11 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
       MaterialPageRoute(builder: (context) => EventDetailPage(event: event)),
     );
 
-    if (!mounted) return;
-
-    setState(() {
-      if (result == 'deleted') {
-        _events.remove(event);
-      } else if (result is Event) {
-        final index = _events.indexOf(event);
-        _events[index] = result;
-      }
-    });
+    if (result == 'deleted') {
+      await _service.deleteEvent(event.eventId);
+    } else if (result is Event) {
+      await _service.updateEvent(result);
+    }
   }
 
   @override
@@ -65,24 +61,41 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1000),
-          child: _events.isEmpty
-              ? const Center(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: Text(
-                'No events yet. Tap "Create Event" to add your first one.',
-                textAlign: TextAlign.center,
-              ),
-            ),
-          )
-              : ListView.builder(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 90),
-            itemCount: _events.length,
-            itemBuilder: (context, index) {
-              final event = _events[index];
-              return OrganizerEventCard(
-                event: event,
-                onTap: () => _openDetails(event),
+          child: StreamBuilder<List<Event>>(
+            stream: _service.getMyEvents(FirebaseAuth.instance.currentUser!.uid),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
+              if (!snapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              final events = snapshot.data!;
+              events.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+
+              if (events.isEmpty) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Text(
+                      'No events yet. Tap "Create Event" to add your first one.',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                );
+              }
+
+              return ListView.builder(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 90),
+                itemCount: events.length,
+                itemBuilder: (context, index) {
+                  final event = events[index];
+                  return OrganizerEventCard(
+                    event: event,
+                    onTap: () => _openDetails(event),
+                  );
+                },
               );
             },
           ),

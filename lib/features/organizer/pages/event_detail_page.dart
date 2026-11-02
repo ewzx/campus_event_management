@@ -1,7 +1,8 @@
-import 'dart:io';
-
+import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../services/registration_service.dart';
 import 'package:flutter/material.dart';
-
+import '../services/event_service.dart';
 import '../../../core/formatters.dart';
 import '../../../models/event.dart';
 import 'announcements_page.dart';
@@ -56,6 +57,26 @@ class _EventDetailPageState extends State<EventDetailPage> {
     }
   }
 
+  Widget _registrationTile(Map<String, dynamic> r) {
+    final id = (r['participantId'] ?? '') as String;
+    final shortId = id.length > 8 ? id.substring(0, 8) : id;
+
+    final registeredAt = r['registeredAt'];
+    final time = registeredAt is Timestamp
+        ? '${formatDate(registeredAt.toDate())}, '
+        '${formatTime(registeredAt.toDate())}'
+        : '';
+
+    return Card(
+      child: ListTile(
+        leading: const Icon(Icons.person),
+        title: Text('Participant $shortId'),
+        subtitle: Text(time),
+        trailing: Chip(label: Text('${r['status'] ?? ''}')),
+      ),
+    );
+  }
+
   Widget _infoRow(IconData icon, String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -92,8 +113,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 if (event.imageUrl.isNotEmpty) ...[
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.file(
-                      File(event.imageUrl),
+                    child: Image.memory(
+                      base64Decode(event.imageUrl),
                       height: 200,
                       width: double.infinity,
                       fit: BoxFit.cover,
@@ -131,20 +152,40 @@ class _EventDetailPageState extends State<EventDetailPage> {
                     setState(() {
                       event.registrationOpen = value;
                     });
+                    EventService().updateEvent(event);
                   },
                 ),
                 const Divider(height: 40),
 
-                const Text(
-                  'Registered participants',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                // Placeholder until participants can register and
-                // registrations are saved in Firebase.
-                const Text(
-                  'No registrations yet. Participants will appear here '
-                      'once they register.',
+                StreamBuilder<List<Map<String, dynamic>>>(
+                  stream: RegistrationService().getRegistrations(event.eventId),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    }
+                    if (!snapshot.hasData) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    final registrations = snapshot.data!;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Registered participants (${registrations.length})',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        if (registrations.isEmpty)
+                          const Text('No registrations yet.'),
+                        for (final r in registrations) _registrationTile(r),
+                      ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 32),
 

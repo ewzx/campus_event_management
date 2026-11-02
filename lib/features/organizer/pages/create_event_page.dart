@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
+import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/formatters.dart';
 import '../../../models/event.dart';
 
@@ -76,9 +76,15 @@ class _CreateEventPageState extends State<CreateEventPage> {
   }
 
   Future<void> _pickImage() async {
-    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final picked = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 800,
+      imageQuality: 60,
+    );
     if (picked != null) {
-      setState(() => _imagePath = picked.path);
+      final bytes = await picked.readAsBytes();
+      // _imagePath now holds the picture as text, not a file path
+      setState(() => _imagePath = base64Encode(bytes));
     }
   }
 
@@ -111,8 +117,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
       capacity: int.parse(_capacityController.text.trim()),
       registeredCount: old?.registeredCount ?? 0,
       registrationOpen: _registrationOpen,
-      // placeholder id change after firebase
-      organizerId: old?.organizerId ?? 'organizer_1',
+      organizerId: old?.organizerId ?? FirebaseAuth.instance.currentUser!.uid,
       staffIds: old?.staffIds ?? [],
     );
 
@@ -140,57 +145,37 @@ class _CreateEventPageState extends State<CreateEventPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Poster placeholder. Real upload will use image_picker
-                  // and Firebase Storage, and save the URL in imageUrl.
-                  Container(
-                    height: 150,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: scheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.add_photo_alternate_outlined,
-                          size: 40,
-                          color: scheme.primary,
-                        ),
-                        const SizedBox(height: 8),
-                        InkWell(
-                          onTap: _pickImage,
-                          child: Container(
-                            height: 150,
-                            width: double.infinity,
-                            clipBehavior: Clip.antiAlias,
-                            decoration: BoxDecoration(
-                              color: scheme.primaryContainer,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: _imagePath.isEmpty
-                                ? Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.add_photo_alternate_outlined,
-                                  size: 40,
-                                  color: scheme.primary,
-                                ),
-                                const SizedBox(height: 8),
-                                const Text('Tap to add an event poster'),
-                              ],
-                            )
-                                : Image.file(
-                              File(_imagePath),
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                            ),
+                  InkWell(
+                    onTap: _pickImage,
+                    child: Container(
+                      height: 150,
+                      width: double.infinity,
+                      clipBehavior: Clip.antiAlias,
+                      decoration: BoxDecoration(
+                        color: scheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: _imagePath.isEmpty
+                          ? Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.add_photo_alternate_outlined,
+                            size: 40,
+                            color: scheme.primary,
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 8),
+                          const Text('Tap to add an event poster'),
+                        ],
+                      )
+                          : Image.memory(
+                        base64Decode(_imagePath),
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                      ),
                     ),
                   ),
+
                   const SizedBox(height: 20),
 
                   TextFormField(

@@ -33,30 +33,29 @@ class Event {
       'eventId': eventId,
       'title': title,
       'description': description,
-      'venue': venue,
-      'dateTime': dateTime,
+      'location': venue,
+      'startTime': dateTime,
       'imageUrl': imageUrl,
       'capacity': capacity,
       'registeredCount': registeredCount,
-      'registrationOpen': registrationOpen,
+      'status': registrationOpen ? 'open' : 'closed',
       'organizerId': organizerId,
       'staffIds': staffIds,
     };
   }
 
-  // Turns Map from Firestore back to Event
-  factory Event.fromMap(Map<String, dynamic> map) {
+  factory Event.fromMap(Map<String, dynamic> map, {String? id}) {
     return Event(
-      eventId: map['eventId'],
-      title: map['title'],
-      description: map['description'],
-      venue: map['venue'],
-      dateTime: (map['dateTime'] as Timestamp).toDate(),
+      eventId: id ?? map['eventId'] ?? '',
+      title: map['title'] ?? '',
+      description: map['description'] ?? '',
+      venue: map['location'] ?? '',
+      dateTime: (map['startTime'] as Timestamp).toDate(),
       imageUrl: map['imageUrl'] ?? '',
-      capacity: map['capacity'],
+      capacity: map['capacity'] ?? 0,
       registeredCount: map['registeredCount'] ?? 0,
-      registrationOpen: map['registrationOpen'] ?? true,
-      organizerId: map['organizerId'],
+      registrationOpen: (map['status'] ?? 'open') == 'open',
+      organizerId: map['organizerId'] ?? '',
       staffIds: List<String>.from(map['staffIds'] ?? []),
     );
   }

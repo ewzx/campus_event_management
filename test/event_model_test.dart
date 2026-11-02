@@ -33,7 +33,7 @@ void main() {
 
     final map = event.toMap();
     // Firestore gives back a Timestamp
-    map['dateTime'] = Timestamp.fromDate(event.dateTime);
+    map['startTime'] = Timestamp.fromDate(event.dateTime);
     final copy = Event.fromMap(map);
 
     expect(copy.eventId, 'e1');
