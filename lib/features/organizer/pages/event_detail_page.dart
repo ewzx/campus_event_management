@@ -7,6 +7,7 @@ import '../../../core/formatters.dart';
 import '../../../models/event.dart';
 import 'announcements_page.dart';
 import 'create_event_page.dart';
+import '../../../core/open_maps.dart';
 
 class EventDetailPage extends StatefulWidget {
   final Event event;
@@ -135,6 +136,14 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   '${formatDate(event.dateTime)}, ${formatTime(event.dateTime)}',
                 ),
                 _infoRow(Icons.location_on, event.venue),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton.icon(
+                    onPressed: () => openInMaps(context, event.venue),
+                    icon: const Icon(Icons.map),
+                    label: const Text('Open in Maps'),
+                  ),
+                ),
                 _infoRow(
                   Icons.people,
                   '${event.registeredCount} / ${event.capacity} registered',
