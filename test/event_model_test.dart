@@ -1,30 +1,41 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:campus_event_management/main.dart';
+import 'package:campus_event_management/models/event.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build the app and trigger a frame.
-    await tester.pumpWidget(const CampusEventApp());
+  test('new event has the correct default values', () {
+    final event = Event(
+      eventId: 'e1',
+      title: 'Tech Talk',
+      description: 'A talk about technology',
+      venue: 'Hall A',
+      dateTime: DateTime(2026, 11, 5, 9, 30),
+      capacity: 50,
+      organizerId: 'o1',
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(event.registeredCount, 0);
+    expect(event.registrationOpen, true);
+    expect(event.imageUrl, '');
+    expect(event.staffIds, isEmpty);
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  test('toMap and fromMap keep the same data', () {
+    final event = Event(
+      eventId: 'e1',
+      title: 'Tech Talk',
+      description: 'A talk about technology',
+      venue: 'Hall A',
+      dateTime: DateTime(2026, 11, 5, 9, 30),
+      capacity: 50,
+      organizerId: 'o1',
+    );
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    final copy = Event.fromMap(event.toMap());
+
+    expect(copy.eventId, 'e1');
+    expect(copy.title, 'Tech Talk');
+    expect(copy.venue, 'Hall A');
+    expect(copy.capacity, 50);
+    expect(copy.dateTime, DateTime(2026, 11, 5, 9, 30));
   });
 }
