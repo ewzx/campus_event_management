@@ -88,7 +88,20 @@ class _CreateEventPageState extends State<CreateEventPage> {
     }
   }
 
+  
   void _submit() {
+    final user = FirebaseAuth.instance.currentUser;
+
+    // Check whether the user is logged in.
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please log in before creating an event.'),
+        ),
+      );
+      return;
+    }
+
     final formValid = _formKey.currentState!.validate();
     final dateTimeChosen = _date != null && _time != null;
 
@@ -106,9 +119,20 @@ class _CreateEventPageState extends State<CreateEventPage> {
 
     final old = widget.eventToEdit;
 
+    // Prevent an organizer from changing event ownership.
+    if (old != null && old.organizerId != user.uid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You cannot edit another organizer\'s event.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     final event = Event(
-      // Keep the old values when editing. Firebase will make real IDs later.
-      eventId: old?.eventId ?? 'local_${DateTime.now().millisecondsSinceEpoch}',
+      eventId: old?.eventId ??
+          'local_${DateTime.now().millisecondsSinceEpoch}',
       title: _titleController.text.trim(),
       description: _descriptionController.text.trim(),
       venue: _venueController.text.trim(),
@@ -117,12 +141,17 @@ class _CreateEventPageState extends State<CreateEventPage> {
       capacity: int.parse(_capacityController.text.trim()),
       registeredCount: old?.registeredCount ?? 0,
       registrationOpen: _registrationOpen,
-      organizerId: old?.organizerId ?? FirebaseAuth.instance.currentUser!.uid,
+
+      // New events belong to the current organizer.
+      // Edited events retain their original organizer.
+      organizerId: old?.organizerId ?? user.uid,
+
       staffIds: old?.staffIds ?? [],
     );
 
     Navigator.pop(context, event);
   }
+
 
   @override
   Widget build(BuildContext context) {
