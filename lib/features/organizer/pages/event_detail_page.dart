@@ -53,7 +53,6 @@ class _EventDetailPageState extends State<EventDetailPage> {
     );
 
     if (confirmed == true && mounted) {
-      // Tell the previous page that this event was deleted.
       Navigator.pop(context, 'deleted');
     }
   }

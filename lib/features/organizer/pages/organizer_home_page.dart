@@ -6,6 +6,7 @@ import '../widgets/organizer_event_card.dart';
 import 'create_event_page.dart';
 import 'event_detail_page.dart';
 
+
 class OrganizerHomePage extends StatefulWidget {
   const OrganizerHomePage({super.key});
 
@@ -52,6 +53,15 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
           'My Events',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Log out',
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut();
+            },
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openCreateEvent,

@@ -107,7 +107,6 @@ class _CreateEventPageState extends State<CreateEventPage> {
     final old = widget.eventToEdit;
 
     final event = Event(
-      // Keep the old values when editing. Firebase will make real IDs later.
       eventId: old?.eventId ?? 'local_${DateTime.now().millisecondsSinceEpoch}',
       title: _titleController.text.trim(),
       description: _descriptionController.text.trim(),
