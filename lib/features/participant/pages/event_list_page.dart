@@ -1,5 +1,6 @@
 
 import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -36,6 +37,18 @@ class _EventListPageState extends State<EventListPage> {
     super.dispose();
   }
 
+  // Generate a unique ticket ID.
+  String _generateTicketId() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+    final random = Random.secure();
+
+    return 'TKT-${List.generate(
+      16,
+      (_) => chars[random.nextInt(chars.length)],
+    ).join()}';
+  }
+
   // Log out the current user.
   Future<void> _logout() async {
     final confirm = await showDialog<bool>(
@@ -66,21 +79,17 @@ class _EventListPageState extends State<EventListPage> {
 
     if (confirm != true || !mounted) return;
 
-    // Hide the current page and dispose Firestore listeners.
     setState(() {
       _isLoggingOut = true;
     });
 
     try {
-      // Wait for the loading page to replace the current UI.
       await WidgetsBinding.instance.endOfFrame;
 
-      // Sign out from Firebase Authentication.
       await FirebaseAuth.instance.signOut();
 
       if (!mounted) return;
 
-      // Clear the navigation stack and return to Welcome Page.
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
           builder: (context) => const AuthEntryPage(),
@@ -462,7 +471,7 @@ class _EventListPageState extends State<EventListPage> {
     return registration.exists;
   }
 
-  // Register for an event.
+  // Register for an event and generate a ticket ID.
   Future<void> _registerForEvent(
     Map<String, dynamic> event,
   ) async {
@@ -498,6 +507,9 @@ class _EventListPageState extends State<EventListPage> {
       final registrationRef = eventRef
           .collection('registrations')
           .doc(user.uid);
+
+      // Generate ticket ID before the transaction.
+      final ticketId = _generateTicketId();
 
       await FirebaseFirestore.instance.runTransaction(
         (transaction) async {
@@ -535,8 +547,11 @@ class _EventListPageState extends State<EventListPage> {
             'eventId': eventId,
             'eventTitle': data['title'] ?? 'Untitled Event',
             'participantId': user.uid,
+            'ticketId': ticketId,
             'registeredAt': FieldValue.serverTimestamp(),
             'status': 'registered',
+            'checkInStatus': false,
+            'checkInTime': null,
           });
 
           transaction.update(eventRef, {
@@ -549,7 +564,7 @@ class _EventListPageState extends State<EventListPage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Registration successful!'),
+          content: Text('Registration successful! Your ticket is ready.'),
           backgroundColor: Colors.green,
         ),
       );
@@ -586,8 +601,6 @@ class _EventListPageState extends State<EventListPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Show loading screen while logging out.
-    // This removes the Firestore StreamBuilder from the widget tree.
     if (_isLoggingOut) {
       return const Scaffold(
         body: Center(

@@ -303,7 +303,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   '${formatDate(event.dateTime)}, '
                   '${formatTime(event.dateTime)}',
                 ),
-<<<<<<< HEAD
+
 
                 // Event location.
                 _infoRow(
@@ -312,7 +312,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 ),
 
                 // Registration count.
-=======
+
                 _infoRow(Icons.location_on, event.venue),
                 Align(
                   alignment: Alignment.centerLeft,
@@ -322,7 +322,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                     label: const Text('Open in Maps'),
                   ),
                 ),
->>>>>>> e4704c24f45e7b17e09f55aee1bb3d02cf15dccd
+
                 _infoRow(
                   Icons.people,
                   '${event.registeredCount} / ${event.capacity} registered',
