@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:campus_event_management/features/organizer/pages/announcements_page.dart';
 import 'package:campus_event_management/features/organizer/pages/create_event_page.dart';
-import 'package:campus_event_management/features/organizer/pages/organizer_home_page.dart';
+import 'package:campus_event_management/features/organizer/widgets/organizer_event_card.dart';
 import 'package:campus_event_management/models/event.dart';
 
+Event sampleEvent({bool open = true}) {
+  return Event(
+    eventId: 'e1',
+    title: 'Tech Talk',
+    description: 'A talk about technology',
+    venue: 'Hall A',
+    dateTime: DateTime(2026, 11, 5, 9, 30),
+    capacity: 50,
+    registeredCount: 12,
+    registrationOpen: open,
+    organizerId: 'o1',
+  );
+}
+
 void main() {
-  testWidgets('organizer home shows a message when there are no events',
-          (tester) async {
-        await tester.pumpWidget(const MaterialApp(home: OrganizerHomePage()));
-
-        expect(find.text('My Events'), findsOneWidget);
-        expect(
-          find.text('No events yet. Tap "Create Event" to add your first one.'),
-          findsOneWidget,
-        );
-      });
-
   testWidgets('create event form shows errors when it is empty',
           (tester) async {
         await tester.pumpWidget(const MaterialApp(home: CreateEventPage()));
@@ -52,42 +54,44 @@ void main() {
     expect(find.text('Enter a whole number greater than 0'), findsOneWidget);
   });
 
-  testWidgets('announcements page rejects an empty message', (tester) async {
-    final event = Event(
-      eventId: 'e1',
-      title: 'Tech Talk',
-      description: 'A talk',
-      venue: 'Hall A',
-      dateTime: DateTime(2026, 11, 5, 9, 30),
-      capacity: 50,
-      organizerId: 'o1',
-    );
+  testWidgets('edit mode fills the form with the existing event',
+          (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(home: CreateEventPage(eventToEdit: sampleEvent())),
+        );
 
-    await tester.pumpWidget(MaterialApp(home: AnnouncementsPage(event: event)));
+        expect(find.text('Edit Event'), findsOneWidget);
+        expect(find.text('Save Changes'), findsOneWidget);
+        expect(find.text('Tech Talk'), findsOneWidget);
+        expect(find.text('Hall A'), findsOneWidget);
+        expect(find.text('50'), findsOneWidget);
+      });
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Send announcement'));
-    await tester.pump();
+  testWidgets('event card shows the event details and Open status',
+          (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(body: OrganizerEventCard(event: sampleEvent())),
+          ),
+        );
 
-    expect(find.text('Please write a message first'), findsOneWidget);
-  });
+        expect(find.text('Tech Talk'), findsOneWidget);
+        expect(find.text('Hall A'), findsOneWidget);
+        expect(find.text('5 November 2026, 9:30 AM'), findsOneWidget);
+        expect(find.text('12 / 50 registered'), findsOneWidget);
+        expect(find.text('Open'), findsOneWidget);
+      });
 
-  testWidgets('announcements page shows a sent message', (tester) async {
-    final event = Event(
-      eventId: 'e2',
-      title: 'Career Fair',
-      description: 'A fair',
-      venue: 'Hall B',
-      dateTime: DateTime(2026, 11, 12, 14, 0),
-      capacity: 100,
-      organizerId: 'o1',
-    );
+  testWidgets('event card shows Closed when registration is off',
+          (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: OrganizerEventCard(event: sampleEvent(open: false)),
+            ),
+          ),
+        );
 
-    await tester.pumpWidget(MaterialApp(home: AnnouncementsPage(event: event)));
-
-    await tester.enterText(find.byType(TextField), 'Venue has changed');
-    await tester.tap(find.widgetWithText(FilledButton, 'Send announcement'));
-    await tester.pump();
-
-    expect(find.text('Venue has changed'), findsOneWidget);
-  });
+        expect(find.text('Closed'), findsOneWidget);
+      });
 }

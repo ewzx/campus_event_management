@@ -89,12 +89,22 @@ class _CreateEventPageState extends State<CreateEventPage> {
   }
 
   void _submit() {
+
     final formValid = _formKey.currentState!.validate();
     final dateTimeChosen = _date != null && _time != null;
 
     setState(() => _showDateTimeError = !dateTimeChosen);
 
     if (!formValid || !dateTimeChosen) return;
+
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please log in before creating an event.')),
+      );
+      return;
+    }
 
     final dateTime = DateTime(
       _date!.year,
@@ -106,6 +116,16 @@ class _CreateEventPageState extends State<CreateEventPage> {
 
     final old = widget.eventToEdit;
 
+    if (old != null && old.organizerId != user.uid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You cannot edit another organizer\'s event.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     final event = Event(
       eventId: old?.eventId ?? 'local_${DateTime.now().millisecondsSinceEpoch}',
       title: _titleController.text.trim(),
@@ -116,7 +136,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
       capacity: int.parse(_capacityController.text.trim()),
       registeredCount: old?.registeredCount ?? 0,
       registrationOpen: _registrationOpen,
-      organizerId: old?.organizerId ?? FirebaseAuth.instance.currentUser!.uid,
+      organizerId: old?.organizerId ?? user.uid,
       staffIds: old?.staffIds ?? [],
     );
 

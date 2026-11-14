@@ -1,7 +1,9 @@
+
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
 import 'package:flutter/material.dart';
-import '../features/auth/auth_wrapper.dart';
+
+import 'firebase_options.dart';
+import 'features/auth/pages/auth_entry_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,7 +30,7 @@ class CampusEventApp extends StatelessWidget {
         ),
         scaffoldBackgroundColor: const Color(0xFFF5F7FB),
       ),
-      home: AuthWrapper()
+      home: const AuthEntryPage(),
     );
   }
 }
