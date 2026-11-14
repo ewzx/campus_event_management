@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import '../../auth/pages/auth_entry_page.dart';
 import 'my_registered_events_page.dart';
 import 'participant_announcements_page.dart';
+import '../../../core/open_maps.dart';
 
 class EventListPage extends StatefulWidget {
   const EventListPage({super.key});
@@ -364,13 +365,36 @@ class _EventListPageState extends State<EventListPage> {
                             ),
                             const SizedBox(height: 12),
                           ],
+
                           Text(
                             'Date: ${_formatDate(event['startTime'])}',
                           ),
                           const SizedBox(height: 8),
+
                           Text(
                             'Location: ${event['location'] ?? 'Not specified'}',
                           ),
+
+                          // Open event location in Google Maps.
+                          if ((event['location']
+                                      ?.toString()
+                                      .trim() ??
+                                  '')
+                              .isNotEmpty)
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: TextButton.icon(
+                                onPressed: () {
+                                  openInMaps(
+                                    dialogContext,
+                                    event['location'].toString(),
+                                  );
+                                },
+                                icon: const Icon(Icons.map),
+                                label: const Text('Open in Maps'),
+                              ),
+                            ),
+
                           const SizedBox(height: 8),
                           Text(
                             'Available places: $available',
@@ -564,7 +588,9 @@ class _EventListPageState extends State<EventListPage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Registration successful! Your ticket is ready.'),
+          content: Text(
+            'Registration successful! Your ticket is ready.',
+          ),
           backgroundColor: Colors.green,
         ),
       );
