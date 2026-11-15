@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../participant/pages/event_list_page.dart';
 import '../../organizer/pages/organizer_home_page.dart';
+import '../../checkin/pages/checkin_dashboard_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -92,7 +93,7 @@ class _LoginPageState extends State<LoginPage> {
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
-              builder: (context) => const StaffDashboardPage(),
+              builder: (context) => const CheckinDashboardPage(),
             ),
             (route) => false,
           );
@@ -281,26 +282,3 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
-// Temporary page until the Check-in Staff module is developed.
-class StaffDashboardPage extends StatelessWidget {
-  const StaffDashboardPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Check-in Staff'),
-      ),
-      body: const Center(
-        child: Text(
-          'Check-in Staff Dashboard\nComing Soon!',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-}

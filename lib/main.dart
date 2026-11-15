@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'firebase_options.dart';
 import 'features/auth/pages/auth_entry_page.dart';
 
+import 'features/checkin/pages/checkin_dashboard_page.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
